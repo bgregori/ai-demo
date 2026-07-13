@@ -1,0 +1,12 @@
+apiVersion: v2
+name: tactical-display
+description: Tactical Satellite Analysis Display - YOLO Object Detection
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - satellite
+  - yolo
+  - object-detection
+maintainers:
+  - name: bgregori

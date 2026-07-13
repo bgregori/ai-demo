@@ -1,0 +1,40 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: build-frontend
+  namespace: demo
+spec:
+  params:
+    - name: IMAGE
+      description: Reference of the image to build
+      default: image-registry.openshift-image-registry.svc:5000/demo/tactical-frontend:latest
+
+  workspaces:
+    - name: source
+      description: The git repo workspace
+
+  steps:
+    - name: build-image
+      image: quay.io/buildah/stable:latest
+      workingDir: $(workspaces.source.path)/tactical-display/frontend
+      securityContext:
+        privileged: true
+      script: |
+        #!/bin/bash
+        set -e
+
+        echo "Building frontend container image (multi-stage build)..."
+        buildah bud \
+          --format=docker \
+          --storage-driver=vfs \
+          -f Dockerfile \
+          -t $(params.IMAGE) \
+          .
+
+        echo "Pushing image to registry..."
+        buildah push \
+          --storage-driver=vfs \
+          --tls-verify=false \
+          $(params.IMAGE)
+
+        echo "✓ Frontend image built and pushed: $(params.IMAGE)"

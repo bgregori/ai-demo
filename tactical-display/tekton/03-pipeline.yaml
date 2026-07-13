@@ -1,0 +1,71 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: build-tactical-display
+  namespace: demo
+spec:
+  params:
+    - name: git-url
+      type: string
+      description: Git repository URL
+      default: https://github.com/your-org/ai-demo.git
+
+    - name: git-revision
+      type: string
+      description: Git revision to checkout
+      default: main
+
+  workspaces:
+    - name: shared-workspace
+      description: Shared workspace for source code
+
+  tasks:
+    - name: fetch-repository
+      taskRef:
+        name: git-clone
+        kind: ClusterTask
+      params:
+        - name: url
+          value: $(params.git-url)
+        - name: revision
+          value: $(params.git-revision)
+        - name: deleteExisting
+          value: "true"
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+
+    - name: build-backend
+      taskRef:
+        name: build-backend
+      runAfter:
+        - fetch-repository
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
+    - name: build-frontend
+      taskRef:
+        name: build-frontend
+      runAfter:
+        - fetch-repository
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
+  finally:
+    - name: report-status
+      params:
+        - name: message
+          value: "Pipeline completed. Backend and Frontend images built."
+      taskSpec:
+        params:
+          - name: message
+        steps:
+          - name: echo
+            image: registry.access.redhat.com/ubi9/ubi-minimal:latest
+            script: |
+              #!/bin/bash
+              echo "$(params.message)"
+              echo "✓ Backend: image-registry.openshift-image-registry.svc:5000/demo/tactical-backend:latest"
+              echo "✓ Frontend: image-registry.openshift-image-registry.svc:5000/demo/tactical-frontend:latest"

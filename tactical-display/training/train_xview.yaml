@@ -1,0 +1,74 @@
+# YOLOv8 Training Configuration for xView Dataset
+# Optimized for small object detection and class imbalance
+
+# Model selection
+# yolov8n.pt = nano (fastest, least accurate)
+# yolov8s.pt = small (good balance)
+# yolov8m.pt = medium (better accuracy, slower)
+# yolov8l.pt = large (best accuracy, slowest)
+model: yolov8s.pt  # Small model - good balance for xView
+
+# Training data
+data: xview_data.yaml  # Path to your data config file
+
+# Training hyperparameters
+epochs: 300            # Train for 300 epochs (can reduce to 150 for faster training)
+patience: 50           # Early stopping patience
+batch: 16              # Batch size (adjust based on GPU memory)
+imgsz: 1280            # Image size - CRITICAL for small objects (can use 960 or 640 if memory limited)
+device: 0              # GPU device (0 for first GPU, cpu for CPU)
+workers: 8             # Number of dataloader workers
+project: runs/train    # Save results to this directory
+name: xview_balanced   # Experiment name
+
+# Optimizer
+optimizer: AdamW       # AdamW works well for object detection
+lr0: 0.001            # Initial learning rate
+lrf: 0.01             # Final learning rate (lr0 * lrf)
+momentum: 0.937       # Momentum
+weight_decay: 0.0005  # Weight decay
+
+# Loss function configuration
+box: 7.5              # Box loss gain
+cls: 0.5              # Class loss gain
+dfl: 1.5              # DFL loss gain
+
+# Use focal loss for class imbalance
+# This is CRITICAL for detecting rare classes
+fl_gamma: 2.0         # Focal loss gamma (0 = no focal loss, 2.0 = strong focus on hard examples)
+
+# Augmentation parameters
+# Optimized for overhead satellite imagery
+hsv_h: 0.015          # HSV-Hue augmentation (fraction)
+hsv_s: 0.7            # HSV-Saturation augmentation (fraction)
+hsv_v: 0.4            # HSV-Value augmentation (fraction)
+degrees: 0.0          # Rotation (degrees) - 0 for overhead imagery
+translate: 0.1        # Translation (+/- fraction)
+scale: 0.5            # Scale (+/- gain)
+shear: 0.0            # Shear (+/- deg) - 0 for overhead imagery
+perspective: 0.0      # Perspective (+/- fraction) - 0 for overhead imagery
+flipud: 0.5           # Flip up-down probability (0.5 = 50% - OK for satellite)
+fliplr: 0.5           # Flip left-right probability (0.5 = 50% - OK for satellite)
+mosaic: 1.0           # Mosaic augmentation probability (1.0 = always)
+mixup: 0.1            # Mixup augmentation probability
+copy_paste: 0.3       # Copy-paste augmentation probability - helps with rare classes!
+
+# Multi-scale training (helps with objects at different scales)
+close_mosaic: 10      # Disable mosaic augmentation for final N epochs
+
+# Validation settings
+val: True             # Validate during training
+save: True            # Save checkpoints
+save_period: 10       # Save checkpoint every N epochs
+plots: True           # Save plots
+
+# Advanced: Anchor configuration
+# YOLOv8 auto-calculates anchors, but you can verify they match small objects
+# Run: yolo val model=yolov8s.pt data=xview_data.yaml imgsz=1280
+# to see anchor statistics
+
+# Advanced: Freeze layers
+# freeze: 10          # Freeze first N layers (useful for fine-tuning)
+
+# Resume training from checkpoint (if needed)
+# resume: runs/train/xview_balanced/weights/last.pt

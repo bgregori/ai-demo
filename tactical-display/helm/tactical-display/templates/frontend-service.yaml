@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tactical-frontend
+  labels:
+    {{- include "tactical-display.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    {{- include "tactical-display.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend

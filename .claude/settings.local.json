@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(oc start-build *ect hummingbird)"
+    ]
+  }
+}

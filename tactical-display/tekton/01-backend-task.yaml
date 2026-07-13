@@ -1,0 +1,51 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: build-backend
+  namespace: demo
+spec:
+  params:
+    - name: IMAGE
+      description: Reference of the image to build
+      default: image-registry.openshift-image-registry.svc:5000/demo/tactical-backend:latest
+
+  workspaces:
+    - name: source
+      description: The git repo workspace
+
+  steps:
+    - name: build-maven-jar
+      image: registry.access.redhat.com/ubi9/openjdk-17:1.20
+      workingDir: $(workspaces.source.path)/tactical-display/backend
+      script: |
+        #!/bin/bash
+        set -e
+        echo "Building backend JAR with Maven..."
+        ./mvnw clean package -DskipTests
+        echo "✓ JAR build complete"
+        ls -lh target/quarkus-app/quarkus-run.jar
+
+    - name: build-image
+      image: quay.io/buildah/stable:latest
+      workingDir: $(workspaces.source.path)/tactical-display/backend
+      securityContext:
+        privileged: true
+      script: |
+        #!/bin/bash
+        set -e
+
+        echo "Building container image..."
+        buildah bud \
+          --format=docker \
+          --storage-driver=vfs \
+          -f src/main/docker/Dockerfile.jvm \
+          -t $(params.IMAGE) \
+          .
+
+        echo "Pushing image to registry..."
+        buildah push \
+          --storage-driver=vfs \
+          --tls-verify=false \
+          $(params.IMAGE)
+
+        echo "✓ Backend image built and pushed: $(params.IMAGE)"

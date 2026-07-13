@@ -1,0 +1,26 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: build-tactical-display-
+  namespace: demo
+spec:
+  serviceAccountName: pipeline-sa
+
+  pipelineRef:
+    name: build-tactical-display
+
+  params:
+    - name: git-url
+      value: https://github.com/YOUR_ORG/tactical-satellite-demo.git
+    - name: git-revision
+      value: main
+
+  workspaces:
+    - name: shared-workspace
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi

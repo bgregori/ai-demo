@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tactical-display.fullname" . }}-backend
+  labels:
+    {{- include "tactical-display.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  replicas: {{ .Values.backend.replicas }}
+  selector:
+    matchLabels:
+      {{- include "tactical-display.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        {{- include "tactical-display.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: backend
+    spec:
+      containers:
+      - name: backend
+        image: "{{ .Values.backend.image.registry }}/{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+        imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        env:
+        - name: TACTICAL_MODEL_URL
+          value: {{ .Values.backend.model.url | quote }}
+        - name: TACTICAL_MODEL_NAME
+          value: {{ .Values.backend.model.name | quote }}
+        - name: TACTICAL_MODEL_CONFIDENCE_THRESHOLD
+          value: {{ .Values.backend.model.confidenceThreshold | quote }}
+        - name: TACTICAL_MODEL_NMS_THRESHOLD
+          value: {{ .Values.backend.model.nmsThreshold | quote }}
+        - name: TACTICAL_MINIO_ENDPOINT
+          value: {{ .Values.backend.minio.endpoint | quote }}
+        - name: TACTICAL_MINIO_ACCESS_KEY
+          value: {{ .Values.backend.minio.accessKey | quote }}
+        - name: TACTICAL_MINIO_SECRET_KEY
+          value: {{ .Values.backend.minio.secretKey | quote }}
+        - name: TACTICAL_MINIO_BUCKET
+          value: {{ .Values.backend.minio.bucket | quote }}
+        - name: TACTICAL_MINIO_IMAGES_PREFIX
+          value: {{ .Values.backend.minio.imagesPrefix | quote }}
+        resources:
+          {{- toYaml .Values.backend.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 5

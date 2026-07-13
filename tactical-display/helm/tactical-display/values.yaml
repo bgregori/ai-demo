@@ -1,0 +1,54 @@
+backend:
+  image:
+    registry: image-registry.openshift-image-registry.svc:5000
+    repository: demo/tactical-backend
+    tag: latest
+    pullPolicy: Always
+
+  replicas: 1
+
+  resources:
+    limits:
+      memory: 2Gi
+      cpu: 1000m
+    requests:
+      memory: 1Gi
+      cpu: 500m
+
+  model:
+    url: http://ai-demo-predictor.demo.svc.cluster.local:8888
+    name: ai-demo
+    confidenceThreshold: "0.25"
+    nmsThreshold: "0.45"
+
+  minio:
+    endpoint: http://minio-service.minio.svc.cluster.local:9000
+    accessKey: minio
+    secretKey: minio123
+    bucket: demo
+    imagesPrefix: xview-images/
+
+frontend:
+  image:
+    registry: image-registry.openshift-image-registry.svc:5000
+    repository: demo/tactical-frontend
+    tag: latest
+    pullPolicy: Always
+
+  replicas: 1
+
+  resources:
+    limits:
+      memory: 128Mi
+      cpu: 200m
+    requests:
+      memory: 64Mi
+      cpu: 100m
+
+  route:
+    enabled: true
+    host: ""  # Auto-assigned by OpenShift
+    tls:
+      enabled: true
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect

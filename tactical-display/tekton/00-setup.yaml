@@ -1,0 +1,124 @@
+---
+# Service Account for Tekton pipelines
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pipeline-sa
+  namespace: demo
+
+---
+# Role for building images
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pipeline-role
+  namespace: demo
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - pods/log
+      - services
+      - configmaps
+      - secrets
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - delete
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - persistentvolumeclaims
+    verbs:
+      - get
+      - list
+      - create
+      - delete
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - patch
+  - apiGroups:
+      - image.openshift.io
+    resources:
+      - imagestreams
+      - imagestreamtags
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - patch
+  - apiGroups:
+      - build.openshift.io
+    resources:
+      - builds
+      - buildconfigs
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - patch
+
+---
+# RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pipeline-role-binding
+  namespace: demo
+subjects:
+  - kind: ServiceAccount
+    name: pipeline-sa
+    namespace: demo
+roleRef:
+  kind: Role
+  name: pipeline-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Allow pipeline SA to use privileged containers (needed for buildah)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: pipeline-sa-privileged
+subjects:
+  - kind: ServiceAccount
+    name: pipeline-sa
+    namespace: demo
+roleRef:
+  kind: ClusterRole
+  name: system:openshift:scc:privileged
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# ImageStreams for built images
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: tactical-backend
+  namespace: demo
+spec:
+  lookupPolicy:
+    local: true
+
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: tactical-frontend
+  namespace: demo
+spec:
+  lookupPolicy:
+    local: true

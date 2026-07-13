@@ -1,0 +1,101 @@
+# Java / Maven
+tactical-display/backend/target/
+tactical-display/backend/.mvn/
+tactical-display/backend/mvnw
+tactical-display/backend/mvnw.cmd
+tactical-display/backend/.factorypath
+tactical-display/backend/.classpath
+tactical-display/backend/.project
+tactical-display/backend/.settings/
+
+# Node / NPM
+tactical-display/frontend/node_modules/
+tactical-display/frontend/dist/
+tactical-display/frontend/.vite/
+tactical-display/frontend/npm-debug.log*
+tactical-display/frontend/yarn-debug.log*
+tactical-display/frontend/yarn-error.log*
+tactical-display/frontend/pnpm-debug.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter
+notebooks/.ipynb_checkpoints/
+notebooks/__pycache__/
+
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.so
+*.egg
+*.egg-info/
+.pytest_cache/
+.coverage
+.tox/
+venv/
+env/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Secrets (just in case)
+*.key
+*.pem
+*.p12
+.env
+.env.local
+secrets/
+
+# Build artifacts
+*.jar
+*.war
+*.ear
+*.class
+
+# Training data and datasets - DO NOT COMMIT
+dataset/
+notebooks/
+xView/
+*.tar.gz
+*.zip
+xView.yaml
+xView_preprocessed.tar.gz
+
+# Training scripts (one-time use, not needed for deployment)
+convert_xview_labels.py
+convert_xview_local.py
+upload_processed_dataset.py
+upload_to_minio.py
+test_minio_connection.py
+test_png_validity.py
+TRAINING_IMPROVEMENTS_SUMMARY.md
+
+# Model files are NOT tracked in Git (too large - 99MB)
+# Download separately or upload directly to MinIO
+# See models/README.md for instructions
+models/**/*.onnx
+
+# MinIO data (if running locally)
+minio-data/
+
+# OpenShift / Kubernetes generated files
+tactical-display/helm/tactical-display/charts/
+tactical-display/helm/tactical-display/*.tgz

@@ -1,0 +1,138 @@
+# xView Dataset Configuration for YOLOv8
+# Place this file in your YOLOv8 training directory
+
+# Dataset paths
+path: /path/to/xview  # Root directory
+train: images/train  # Train images (relative to 'path')
+val: images/val      # Val images (relative to 'path')
+test: images/test    # Test images (optional)
+
+# Number of classes
+nc: 60
+
+# Class names (all 60 xView classes)
+names:
+  0: Fixed-wing Aircraft
+  1: Small Aircraft
+  2: Cargo Plane
+  3: Helicopter
+  4: Passenger Vehicle
+  5: Small Car
+  6: Bus
+  7: Pickup Truck
+  8: Utility Truck
+  9: Truck
+  10: Cargo Truck
+  11: Truck w/Box
+  12: Truck Tractor
+  13: Trailer
+  14: Truck w/Flatbed
+  15: Truck w/Liquid
+  16: Crane Truck
+  17: Railway Vehicle
+  18: Passenger Car
+  19: Cargo Car
+  20: Flat Car
+  21: Tank car
+  22: Locomotive
+  23: Maritime Vessel
+  24: Motorboat
+  25: Sailboat
+  26: Tugboat
+  27: Barge
+  28: Fishing Vessel
+  29: Ferry
+  30: Yacht
+  31: Container Ship
+  32: Oil Tanker
+  33: Engineering Vehicle
+  34: Tower crane
+  35: Container Crane
+  36: Reach Stacker
+  37: Straddle Carrier
+  38: Mobile Crane
+  39: Dump Truck
+  40: Haul Truck
+  41: Scraper/Tractor
+  42: Front loader/Bulldozer
+  43: Excavator
+  44: Cement Mixer
+  45: Ground Grader
+  46: Hut/Tent
+  47: Shed
+  48: Building
+  49: Aircraft Hangar
+  50: Damaged Building
+  51: Facility
+  52: Construction Site
+  53: Vehicle Lot
+  54: Helipad
+  55: Storage Tank
+  56: Shipping container lot
+  57: Shipping Container
+  58: Pylon
+  59: Tower
+
+# Class weights (inversely proportional to frequency)
+# These weights are critical for balanced training!
+class_weights:
+  0: 100.0   # Fixed-wing Aircraft (very rare)
+  1: 100.0   # Small Aircraft (very rare)
+  2: 200.0   # Cargo Plane (extremely rare)
+  3: 150.0   # Helicopter (extremely rare)
+  4: 5.0     # Passenger Vehicle (common)
+  5: 5.0     # Small Car (very common)
+  6: 20.0    # Bus
+  7: 8.0     # Pickup Truck
+  8: 10.0    # Utility Truck
+  9: 5.0     # Truck (common)
+  10: 8.0    # Cargo Truck
+  11: 15.0   # Truck w/Box
+  12: 20.0   # Truck Tractor
+  13: 10.0   # Trailer
+  14: 15.0   # Truck w/Flatbed
+  15: 25.0   # Truck w/Liquid
+  16: 40.0   # Crane Truck
+  17: 80.0   # Railway Vehicle (rare)
+  18: 80.0   # Passenger Car (rare)
+  19: 80.0   # Cargo Car (rare)
+  20: 80.0   # Flat Car (rare)
+  21: 100.0  # Tank car (rare)
+  22: 100.0  # Locomotive (rare)
+  23: 30.0   # Maritime Vessel
+  24: 40.0   # Motorboat
+  25: 60.0   # Sailboat
+  26: 60.0   # Tugboat
+  27: 50.0   # Barge
+  28: 50.0   # Fishing Vessel
+  29: 70.0   # Ferry
+  30: 80.0   # Yacht
+  31: 60.0   # Container Ship
+  32: 80.0   # Oil Tanker
+  33: 60.0   # Engineering Vehicle
+  34: 50.0   # Tower crane
+  35: 60.0   # Container Crane
+  36: 80.0   # Reach Stacker
+  37: 80.0   # Straddle Carrier
+  38: 40.0   # Mobile Crane
+  39: 30.0   # Dump Truck
+  40: 40.0   # Haul Truck
+  41: 60.0   # Scraper/Tractor
+  42: 40.0   # Front loader/Bulldozer
+  43: 40.0   # Excavator
+  44: 50.0   # Cement Mixer
+  45: 60.0   # Ground Grader
+  46: 30.0   # Hut/Tent
+  47: 10.0   # Shed
+  48: 0.3    # Building (VERY common - reduce weight drastically)
+  49: 20.0   # Aircraft Hangar
+  50: 60.0   # Damaged Building
+  51: 5.0    # Facility
+  52: 15.0   # Construction Site
+  53: 10.0   # Vehicle Lot
+  54: 100.0  # Helipad (rare)
+  55: 8.0    # Storage Tank
+  56: 15.0   # Shipping container lot
+  57: 10.0   # Shipping Container
+  58: 30.0   # Pylon
+  59: 20.0   # Tower

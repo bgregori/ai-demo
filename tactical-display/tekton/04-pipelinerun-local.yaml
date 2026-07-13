@@ -1,0 +1,30 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: build-tactical-display-local
+  namespace: demo
+spec:
+  pipelineRef:
+    name: build-tactical-display
+
+  workspaces:
+    - name: shared-workspace
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi
+
+  # For local source code (no git clone needed)
+  taskRunSpecs:
+    - pipelineTaskName: fetch-repository
+      taskSpec:
+        steps:
+          - name: skip-clone
+            image: registry.access.redhat.com/ubi9/ubi-minimal:latest
+            script: |
+              #!/bin/bash
+              echo "⚠ Using local source upload instead of git clone"
+              echo "Run: oc cp . <pod>:/workspace/source/"
