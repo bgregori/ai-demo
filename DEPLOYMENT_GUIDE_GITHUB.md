@@ -6,9 +6,11 @@ Complete guide to deploy the Tactical Display demo on OpenShift with RHOAI 3 **f
 
 - OpenShift cluster with RHOAI 3 installed
 - OpenShift Pipelines Operator installed
+- OpenShift GitOps Operator installed
 - `oc` CLI and `tkn` CLI installed
 - Cluster admin access
 - GitHub repository with this code
+- GPU access (if cluster has sample workloads using GPU, they must be removed)
 
 ## Quick Start
 
@@ -34,6 +36,29 @@ cd tactical-satellite-demo
 ---
 
 ## Step-by-Step Instructions
+
+### Step 0: Remove Sample GPU Workloads (If Present)
+
+If your cluster has sample RHOAI workloads consuming GPU resources, remove them first:
+
+```bash
+# Check for sample workloads
+oc get inferenceservice -n my-first-model 2>/dev/null
+
+# If found, delete the sample LLaMA workload
+oc delete inferenceservice llama-32-3b-instruct -n my-first-model
+
+# Verify GPU is freed
+oc get pods -n my-first-model
+# Should show: No resources found
+
+# Optional: Delete the entire namespace
+oc delete namespace my-first-model
+```
+
+**Why this is needed:** Many RHOAI demo clusters come with sample LLaMA models deployed that consume the only GPU. The YOLOv8 model requires GPU access for inference.
+
+---
 
 ### Step 1: Create Namespaces
 
@@ -233,6 +258,8 @@ oc get imagestream -n demo
 ---
 
 ### Step 5: Deploy Model with RHOAI
+
+**IMPORTANT:** Ensure you removed sample GPU workloads first (Step 0). The YOLOv8 model requires GPU access.
 
 #### 5.1 Create Data Connection
 
