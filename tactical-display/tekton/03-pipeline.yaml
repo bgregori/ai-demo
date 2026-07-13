@@ -22,15 +22,20 @@ spec:
   tasks:
     - name: fetch-repository
       taskRef:
-        name: git-clone
-        kind: ClusterTask
-        apiVersion: tekton.dev/v1
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: git-clone
+          - name: namespace
+            value: openshift-pipelines
       params:
-        - name: url
+        - name: URL
           value: $(params.git-url)
-        - name: revision
+        - name: REVISION
           value: $(params.git-revision)
-        - name: deleteExisting
+        - name: DELETE_EXISTING
           value: "true"
       workspaces:
         - name: output
