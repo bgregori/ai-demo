@@ -8,7 +8,7 @@ spec:
     - name: git-url
       type: string
       description: Git repository URL
-      default: https://github.com/your-org/ai-demo.git
+      default: https://github.com/bgregori/ai-demo.git
 
     - name: git-revision
       type: string
@@ -41,20 +41,76 @@ spec:
         - name: output
           workspace: shared-workspace
 
-    - name: build-backend
+    - name: maven-build-backend
       taskRef:
-        name: build-backend
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: maven
+          - name: namespace
+            value: openshift-pipelines
       runAfter:
         - fetch-repository
+      params:
+        - name: GOALS
+          value:
+            - clean
+            - package
+            - -DskipTests
+        - name: SUBDIRECTORY
+          value: tactical-display/backend
       workspaces:
         - name: source
           workspace: shared-workspace
 
-    - name: build-frontend
+    - name: buildah-backend
       taskRef:
-        name: build-frontend
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: buildah
+          - name: namespace
+            value: openshift-pipelines
+      runAfter:
+        - maven-build-backend
+      params:
+        - name: IMAGE
+          value: image-registry.openshift-image-registry.svc:5000/demo/tactical-backend:latest
+        - name: DOCKERFILE
+          value: ./tactical-display/backend/src/main/docker/Dockerfile.jvm
+        - name: CONTEXT
+          value: ./tactical-display/backend
+        - name: TLSVERIFY
+          value: "false"
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
+    - name: buildah-frontend
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: buildah
+          - name: namespace
+            value: openshift-pipelines
       runAfter:
         - fetch-repository
+      params:
+        - name: IMAGE
+          value: image-registry.openshift-image-registry.svc:5000/demo/tactical-frontend:latest
+        - name: DOCKERFILE
+          value: ./tactical-display/frontend/Dockerfile
+        - name: CONTEXT
+          value: ./tactical-display/frontend
+        - name: TLSVERIFY
+          value: "false"
       workspaces:
         - name: source
           workspace: shared-workspace
