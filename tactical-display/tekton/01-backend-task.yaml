@@ -28,8 +28,6 @@ spec:
     - name: build-image
       image: quay.io/buildah/stable:latest
       workingDir: $(workspaces.source.path)/tactical-display/backend
-      securityContext:
-        privileged: true
       script: |
         #!/bin/bash
         set -e

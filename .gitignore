@@ -1,8 +1,5 @@
 # Java / Maven
 tactical-display/backend/target/
-tactical-display/backend/.mvn/
-tactical-display/backend/mvnw
-tactical-display/backend/mvnw.cmd
 tactical-display/backend/.factorypath
 tactical-display/backend/.classpath
 tactical-display/backend/.project

@@ -11,7 +11,7 @@ spec:
 
   params:
     - name: git-url
-      value: https://github.com/YOUR_ORG/tactical-satellite-demo.git
+      value: https://github.com/bgregori/ai-demo.git
     - name: git-revision
       value: main
 
