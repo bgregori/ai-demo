@@ -124,6 +124,16 @@ oc wait --for=condition=available --timeout=300s deployment/minio -n minio || tr
 echo -e "${COLOR_GREEN}✓ MinIO deployed${COLOR_RESET}"
 echo ""
 
+# 2.5. Deploy RHOAI Training Workbench
+echo -e "${COLOR_BLUE}Step 2.5: Deploying RHOAI Training Workbench...${COLOR_RESET}"
+if [ -f deployment/rhoai-workbench.yaml ]; then
+    oc apply -f deployment/rhoai-workbench.yaml
+    echo -e "${COLOR_GREEN}✓ RHOAI Workbench deployed (will clone notebooks from GitHub)${COLOR_RESET}"
+else
+    echo -e "${COLOR_YELLOW}Warning: deployment/rhoai-workbench.yaml not found, skipping workbench${COLOR_RESET}"
+fi
+echo ""
+
 # 3. Install Tekton resources
 echo -e "${COLOR_BLUE}Step 3: Installing Tekton pipeline...${COLOR_RESET}"
 cd tactical-display/tekton
@@ -144,10 +154,10 @@ echo -e "${COLOR_BLUE}Step 4: Preparing PipelineRun...${COLOR_RESET}"
 if git config --get remote.origin.url &>/dev/null; then
     GIT_URL=$(git config --get remote.origin.url)
     echo "Using Git URL: ${GIT_URL}"
-    sed "s|https://github.com/YOUR_ORG/tactical-satellite-demo.git|${GIT_URL}|g" \
+    sed "s|https://github.com/bgregori/ai-demo.git|${GIT_URL}|g" \
       05-pipelinerun-git.yaml > /tmp/pipelinerun.yaml
 else
-    echo -e "${COLOR_YELLOW}Warning: No git remote found, using template URL${COLOR_RESET}"
+    echo -e "${COLOR_YELLOW}Note: Using default GitHub URL: https://github.com/bgregori/ai-demo.git${COLOR_RESET}"
     cp 05-pipelinerun-git.yaml /tmp/pipelinerun.yaml
 fi
 echo ""

@@ -1,0 +1,118 @@
+apiVersion: kubeflow.org/v1
+kind: Notebook
+metadata:
+  name: tactical-training-workbench
+  namespace: demo
+  labels:
+    app: tactical-training-workbench
+    opendatahub.io/dashboard: "true"
+spec:
+  template:
+    spec:
+      affinity: {}
+      # Init container to clone only notebooks directory from Git
+      initContainers:
+      - name: git-clone-notebooks
+        image: alpine/git:latest
+        workingDir: /workspace
+        command:
+        - sh
+        - -c
+        - |
+          if [ ! -d "/workspace/notebooks/.git" ]; then
+            echo "Cloning notebooks from GitHub..."
+            git clone --filter=blob:none --sparse https://github.com/bgregori/ai-demo.git /tmp/repo
+            cd /tmp/repo
+            git sparse-checkout set notebooks
+            cp -r notebooks/* /workspace/
+            echo "✓ Notebooks cloned successfully"
+          else
+            echo "Notebooks already exist, skipping clone"
+          fi
+        volumeMounts:
+        - mountPath: /workspace
+          name: tactical-training-workbench
+      containers:
+      - name: tactical-training-workbench
+        image: quay.io/modh/odh-pytorch-notebook@sha256:latest
+        imagePullPolicy: Always
+        workingDir: /opt/app-root/src
+        env:
+        - name: NOTEBOOK_ARGS
+          value: |-
+            --ServerApp.port=8888
+            --ServerApp.token=''
+            --ServerApp.password=''
+            --ServerApp.base_url=/notebook/demo/tactical-training-workbench
+            --ServerApp.quit_button=False
+            --ServerApp.tornado_settings={"user":"jovyan","hub_host":"https://rhods-dashboard-redhat-ods-applications.apps.cluster.example.com","hub_prefix":"/projects/demo"}
+        - name: JUPYTER_IMAGE
+          value: quay.io/modh/odh-pytorch-notebook:latest
+        envFrom:
+        - secretRef:
+            name: aws-connection-minio-models
+            optional: true
+        ports:
+        - containerPort: 8888
+          name: notebook-port
+          protocol: TCP
+        resources:
+          limits:
+            cpu: "4"
+            memory: 16Gi
+            nvidia.com/gpu: "1"
+          requests:
+            cpu: "2"
+            memory: 8Gi
+            nvidia.com/gpu: "1"
+        volumeMounts:
+        - mountPath: /opt/app-root/src
+          name: tactical-training-workbench
+        - mountPath: /dev/shm
+          name: shm
+      volumes:
+      - name: tactical-training-workbench
+        persistentVolumeClaim:
+          claimName: tactical-training-workbench
+      - name: shm
+        emptyDir:
+          medium: Memory
+      serviceAccountName: tactical-training-workbench
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tactical-training-workbench
+  namespace: demo
+  labels:
+    opendatahub.io/dashboard: "true"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tactical-training-workbench
+  namespace: demo
+  labels:
+    opendatahub.io/dashboard: "true"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tactical-training-workbench
+  namespace: demo
+  labels:
+    opendatahub.io/dashboard: "true"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+- kind: ServiceAccount
+  name: tactical-training-workbench

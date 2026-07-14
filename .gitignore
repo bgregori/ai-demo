@@ -69,8 +69,10 @@ secrets/
 
 # Training data and datasets - DO NOT COMMIT
 dataset/
-notebooks/
 xView/
+# Keep notebooks for documentation but exclude checkpoints
+notebooks/.ipynb_checkpoints/
+notebooks/__pycache__/
 *.tar.gz
 *.zip
 xView.yaml
