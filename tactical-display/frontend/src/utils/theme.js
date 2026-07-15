@@ -30,26 +30,43 @@ export const theme = {
     if (!className) return this.classColors.default;
 
     const lower = className.toLowerCase();
-    if (lower.includes('aircraft') || lower.includes('helicopter')) {
+
+    // Aircraft - check BEFORE vehicle to catch "cargo plane"
+    if (lower.includes('aircraft') || lower.includes('helicopter') || lower.includes('plane')) {
       return this.classColors.aircraft;
     }
+
+    // Infrastructure - check BEFORE vehicle to catch "vehicle lot"
+    if (lower.includes('tower') || lower.includes('pylon') || lower.includes('tank') ||
+        lower.includes('container') || lower.includes('helipad') || lower.includes('lot')) {
+      return this.classColors.infrastructure;
+    }
+
+    // Vehicles
     if (lower.includes('vehicle') || lower.includes('car') || lower.includes('truck') || lower.includes('bus')) {
       return this.classColors.vehicle;
     }
-    if (lower.includes('ship') || lower.includes('vessel') || lower.includes('boat') || lower.includes('yacht') || lower.includes('ferry')) {
+
+    // Maritime
+    if (lower.includes('ship') || lower.includes('vessel') || lower.includes('boat') ||
+        lower.includes('yacht') || lower.includes('ferry')) {
       return this.classColors.maritime;
     }
+
+    // Railway
     if (lower.includes('railway') || lower.includes('locomotive') || lower.includes('train')) {
       return this.classColors.railway;
     }
+
+    // Engineering
     if (lower.includes('crane') || lower.includes('excavator') || lower.includes('bulldozer') || lower.includes('loader')) {
       return this.classColors.engineering;
     }
-    if (lower.includes('building') || lower.includes('hangar') || lower.includes('facility') || lower.includes('shed') || lower.includes('hut')) {
+
+    // Buildings
+    if (lower.includes('building') || lower.includes('hangar') || lower.includes('facility') ||
+        lower.includes('shed') || lower.includes('hut')) {
       return this.classColors.building;
-    }
-    if (lower.includes('tower') || lower.includes('pylon') || lower.includes('tank') || lower.includes('container') || lower.includes('helipad')) {
-      return this.classColors.infrastructure;
     }
 
     return this.classColors.default;
