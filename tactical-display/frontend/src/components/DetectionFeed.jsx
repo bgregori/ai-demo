@@ -96,11 +96,15 @@ export function DetectionFeed({ detections, confidenceThreshold }) {
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = theme.colors.backgroundTertiary;
-                e.currentTarget.style.borderColor = color;
+                e.currentTarget.style.borderTopColor = color;
+                e.currentTarget.style.borderRightColor = color;
+                e.currentTarget.style.borderBottomColor = color;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = theme.colors.backgroundSecondary;
-                e.currentTarget.style.borderColor = theme.colors.border;
+                e.currentTarget.style.borderTopColor = theme.colors.border;
+                e.currentTarget.style.borderRightColor = theme.colors.border;
+                e.currentTarget.style.borderBottomColor = theme.colors.border;
               }}
             >
               <div
