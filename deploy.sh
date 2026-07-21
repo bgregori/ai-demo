@@ -33,7 +33,12 @@ echo ""
 echo -e "${COLOR_BLUE}Step 1: Creating namespaces...${COLOR_RESET}"
 oc new-project demo --display-name="Tactical Display Demo" --description="AI-powered satellite image analysis" 2>/dev/null || oc project demo
 oc new-project minio --display-name="MinIO Storage" --description="S3-compatible object storage for images and models" 2>/dev/null || true
-echo -e "${COLOR_GREEN}✓ Namespaces created${COLOR_RESET}"
+
+# Add RHOAI dashboard label to demo namespace
+echo "Adding RHOAI dashboard labels..."
+oc label namespace demo opendatahub.io/dashboard=true --overwrite
+
+echo -e "${COLOR_GREEN}✓ Namespaces created and labeled${COLOR_RESET}"
 echo ""
 
 # Step 2: Deploy MinIO
