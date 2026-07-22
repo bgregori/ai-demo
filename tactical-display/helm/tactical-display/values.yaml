@@ -16,15 +16,15 @@ backend:
       cpu: 500m
 
   model:
-    url: http://ai-demo-predictor.demo.svc.cluster.local:8888
+    url: http://ai-demo-predictor-predictor.demo.svc.cluster.local:8080
     name: ai-demo
     confidenceThreshold: "0.25"
     nmsThreshold: "0.45"
 
   minio:
     endpoint: http://minio-service.minio.svc.cluster.local:9000
-    accessKey: minio
-    secretKey: minio123
+    accessKey: rootuser
+    secretKey: rootuser123
     bucket: demo
     imagesPrefix: xview-images/
 
