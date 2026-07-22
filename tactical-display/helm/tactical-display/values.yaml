@@ -16,7 +16,7 @@ backend:
       cpu: 500m
 
   model:
-    url: http://ai-demo-predictor.demo.svc.cluster.local:80
+    url: http://ai-demo-predictor.demo.svc.cluster.local:8080
     name: ai-demo
     confidenceThreshold: "0.25"
     nmsThreshold: "0.45"
