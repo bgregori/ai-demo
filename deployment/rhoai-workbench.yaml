@@ -3,87 +3,142 @@ kind: Notebook
 metadata:
   name: tactical-training-workbench
   namespace: demo
+  annotations:
+    notebooks.opendatahub.io/inject-auth: "true"
+    notebooks.opendatahub.io/last-image-selection: pytorch:3.4
+    notebooks.opendatahub.io/last-image-version-git-commit-selection: 8e73cac
+    opendatahub.io/connections: demo/minio
+    opendatahub.io/hardware-profile-name: nvidia-gpu
+    opendatahub.io/hardware-profile-namespace: redhat-ods-applications
+    opendatahub.io/image-display-name: PyTorch
+    openshift.io/display-name: tactical-training-workbench
   labels:
     app: tactical-training-workbench
     opendatahub.io/dashboard: "true"
+    opendatahub.io/odh-managed: "true"
 spec:
   template:
     spec:
-      affinity: {}
       # Init container to clone only notebooks directory from Git
       initContainers:
       - name: git-clone-notebooks
         image: alpine/git:latest
-        workingDir: /workspace
+        workingDir: /opt/app-root/src
         command:
         - sh
         - -c
         - |
-          if [ ! -d "/workspace/notebooks/.git" ]; then
+          if [ ! -d "/opt/app-root/src/notebooks/.git" ]; then
             echo "Cloning notebooks from GitHub..."
             git clone --filter=blob:none --sparse https://github.com/bgregori/ai-demo.git /tmp/repo
             cd /tmp/repo
             git sparse-checkout set notebooks
-            cp -r notebooks/* /workspace/
+            cp -r notebooks /opt/app-root/src/
             echo "✓ Notebooks cloned successfully"
           else
             echo "Notebooks already exist, skipping clone"
           fi
         volumeMounts:
-        - mountPath: /workspace
-          name: tactical-training-workbench
+        - mountPath: /opt/app-root/src/
+          name: tactical-training-workbench-storage
       containers:
       - name: tactical-training-workbench
-        image: quay.io/modh/odh-pytorch-notebook@sha256:latest
+        image: image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/pytorch:3.4
         imagePullPolicy: Always
         workingDir: /opt/app-root/src
         env:
         - name: NOTEBOOK_ARGS
           value: |-
             --ServerApp.port=8888
-            --ServerApp.token=''
-            --ServerApp.password=''
-            --ServerApp.base_url=/notebook/demo/tactical-training-workbench
-            --ServerApp.quit_button=False
-            --ServerApp.tornado_settings={"user":"jovyan","hub_host":"https://rhods-dashboard-redhat-ods-applications.apps.cluster.example.com","hub_prefix":"/projects/demo"}
+                              --ServerApp.token=''
+                              --ServerApp.password=''
+                              --ServerApp.base_url=/notebook/demo/tactical-training-workbench
+                              --ServerApp.quit_button=False
         - name: JUPYTER_IMAGE
-          value: quay.io/modh/odh-pytorch-notebook:latest
+          value: image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/training-hub-universal-cuda:3.4
+        - name: GIT_SSL_CAINFO
+          value: /etc/pki/tls/custom-certs/ca-bundle.crt
+        - name: PIP_CERT
+          value: /etc/pki/tls/custom-certs/ca-bundle.crt
+        - name: REQUESTS_CA_BUNDLE
+          value: /etc/pki/tls/custom-certs/ca-bundle.crt
+        - name: SSL_CERT_FILE
+          value: /etc/pki/tls/custom-certs/ca-bundle.crt
+        - name: PIPELINES_SSL_SA_CERTS
+          value: /etc/pki/tls/custom-certs/ca-bundle.crt
+        - name: KF_PIPELINES_SSL_SA_CERTS
+          value: /etc/pki/tls/custom-certs/ca-bundle.crt
         envFrom:
         - secretRef:
-            name: aws-connection-minio-models
-            optional: true
+            name: minio
         ports:
         - containerPort: 8888
           name: notebook-port
           protocol: TCP
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /notebook/demo/tactical-training-workbench/api
+            port: notebook-port
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /notebook/demo/tactical-training-workbench/api
+            port: notebook-port
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 1
         resources:
           limits:
-            cpu: "4"
-            memory: 16Gi
+            cpu: "1"
+            memory: 12Gi
             nvidia.com/gpu: "1"
           requests:
-            cpu: "2"
-            memory: 8Gi
+            cpu: "1"
+            memory: 12Gi
             nvidia.com/gpu: "1"
         volumeMounts:
-        - mountPath: /opt/app-root/src
-          name: tactical-training-workbench
+        - mountPath: /opt/app-root/src/
+          name: tactical-training-workbench-storage
         - mountPath: /dev/shm
           name: shm
+        - mountPath: /etc/pki/tls/custom-certs
+          name: trusted-ca
+          readOnly: true
+        - mountPath: /opt/app-root/pipeline-runtimes/
+          name: runtime-images
+      enableServiceLinks: false
+      serviceAccountName: tactical-training-workbench
       volumes:
-      - name: tactical-training-workbench
+      - name: tactical-training-workbench-storage
         persistentVolumeClaim:
-          claimName: tactical-training-workbench
+          claimName: tactical-training-workbench-storage
       - name: shm
         emptyDir:
           medium: Memory
-      serviceAccountName: tactical-training-workbench
+      - name: trusted-ca
+        configMap:
+          name: workbench-trusted-ca-bundle
+          optional: true
+      - name: runtime-images
+        configMap:
+          name: pipeline-runtime-images
+          optional: true
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: tactical-training-workbench
+  name: tactical-training-workbench-storage
   namespace: demo
+  annotations:
+    openshift.io/display-name: tactical-training-workbench-storage
   labels:
     opendatahub.io/dashboard: "true"
 spec:
@@ -91,7 +146,8 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 20Gi
+      storage: 150Gi
+  storageClassName: gp3-csi
   volumeMode: Filesystem
 ---
 apiVersion: v1
