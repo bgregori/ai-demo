@@ -13,7 +13,6 @@ function App() {
   const [images, setImages] = useState([]);
   const [selectedImageKey, setSelectedImageKey] = useState(null);
   const [analysisResults, setAnalysisResults] = useState({});
-  const [summary, setSummary] = useState(null);
   const [confidenceThreshold, setConfidenceThreshold] = useState(0.25);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -28,7 +27,6 @@ function App() {
   // Load images on mount
   useEffect(() => {
     loadImages();
-    loadSummary();
   }, []);
 
   async function loadImages() {
@@ -38,16 +36,6 @@ function App() {
       setError(null);
     } catch (err) {
       setError('Failed to load images: ' + err.message);
-    }
-  }
-
-  async function loadSummary() {
-    try {
-      const data = await api.getSummary();
-      setSummary(data);
-    } catch (err) {
-      // Summary might fail if no images analyzed yet
-      console.log('No summary available yet');
     }
   }
 
@@ -74,9 +62,6 @@ function App() {
       setImages((prev) =>
         prev.map((img) => (img.key === imageKey ? { ...img, analyzed: true } : img))
       );
-
-      // Reload summary
-      await loadSummary();
     } catch (err) {
       setError('Failed to analyze image: ' + err.message);
       setSelectedImageKey(null); // Clear selection on error
@@ -97,11 +82,36 @@ function App() {
         [imageKey]: result,
       }));
       setSelectedImageKey(imageKey);
-
-      // Reload summary
-      await loadSummary();
     } catch (err) {
       setError('Failed to re-analyze image: ' + err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleDeleteImage(imageKey) {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await api.deleteImage(imageKey);
+
+      // Remove from analysis results
+      setAnalysisResults((prev) => {
+        const newResults = { ...prev };
+        delete newResults[imageKey];
+        return newResults;
+      });
+
+      // Deselect if this was the selected image
+      if (selectedImageKey === imageKey) {
+        setSelectedImageKey(null);
+      }
+
+      // Reload images
+      await loadImages();
+    } catch (err) {
+      setError('Failed to delete image: ' + err.message);
     } finally {
       setIsLoading(false);
     }
@@ -126,11 +136,10 @@ function App() {
       // Switch to the uploaded image
       setSelectedImageKey(imageKey);
 
-      // Mark as analyzed and reload summary
+      // Mark as analyzed
       setImages((prev) =>
         prev.map((img) => (img.key === imageKey ? { ...img, analyzed: true } : img))
       );
-      await loadSummary();
 
       setError(null);
     } catch (err) {
@@ -234,11 +243,9 @@ function App() {
       )}
 
       {/* Summary Dashboard */}
-      {summary && (
-        <div style={{ padding: '16px 24px' }}>
-          <SummaryDashboard summary={summary} />
-        </div>
-      )}
+      <div style={{ padding: '16px 24px' }}>
+        <SummaryDashboard analysisResult={currentAnalysis} />
+      </div>
 
       {/* Main Content */}
       <div style={{ flex: 1, display: 'flex', gap: '16px', padding: '16px 24px', overflow: 'hidden' }}>
@@ -259,6 +266,7 @@ function App() {
             onSelectImage={handleAnalyzeImage}
             onUpload={handleUploadImage}
             onReanalyze={handleReanalyzeImage}
+            onDelete={handleDeleteImage}
           />
         </div>
 

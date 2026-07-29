@@ -55,6 +55,16 @@ const realApi = {
     return response.json();
   },
 
+  async deleteImage(imageKey) {
+    const response = await fetch(`${API_BASE_URL}/images?imageKey=${encodeURIComponent(imageKey)}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete image');
+    }
+    return response.json();
+  },
+
   async getHealth() {
     const response = await fetch(`${API_BASE_URL}/health`);
     if (!response.ok) {
@@ -118,6 +128,30 @@ const mockApi = {
       success: true,
       imageKey: newImage.key,
       filename: file.name,
+    };
+  },
+
+  async deleteImage(imageKey) {
+    await delay(300);
+
+    // Remove from mock images
+    const index = mockImages.findIndex((img) => img.key === imageKey);
+    if (index > -1) {
+      mockImages.splice(index, 1);
+    }
+
+    // Remove from analysis results
+    delete mockAnalysisResults[imageKey];
+
+    // Remove from analyzed keys
+    const analyzedIndex = analyzedImageKeys.indexOf(imageKey);
+    if (analyzedIndex > -1) {
+      analyzedImageKeys.splice(analyzedIndex, 1);
+    }
+
+    return {
+      success: true,
+      imageKey: imageKey,
     };
   },
 

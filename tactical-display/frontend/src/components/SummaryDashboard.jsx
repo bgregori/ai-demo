@@ -1,11 +1,23 @@
 import { theme } from '../utils/theme';
 
-export function SummaryDashboard({ summary }) {
-  if (!summary) {
-    return null;
+export function SummaryDashboard({ analysisResult }) {
+  // Compute stats from the current image's detections
+  let totalDetections = 0;
+  let totalConfidence = 0;
+  let detectionsByClass = {};
+
+  if (analysisResult && analysisResult.detections) {
+    totalDetections = analysisResult.detections.length;
+
+    analysisResult.detections.forEach((detection) => {
+      totalConfidence += detection.confidence;
+      detectionsByClass[detection.className] = (detectionsByClass[detection.className] || 0) + 1;
+    });
   }
 
-  const topClasses = Object.entries(summary.detectionsByClass || {})
+  const averageConfidence = totalDetections > 0 ? totalConfidence / totalDetections : 0;
+
+  const topClasses = Object.entries(detectionsByClass)
     .sort(([, a], [, b]) => b - a)
     .slice(0, 5);
 
@@ -21,37 +33,6 @@ export function SummaryDashboard({ summary }) {
         borderRadius: '4px',
       }}
     >
-      {/* Total Images */}
-      <div
-        style={{
-          padding: '16px',
-          backgroundColor: theme.colors.backgroundTertiary,
-          border: `1px solid ${theme.colors.border}`,
-          borderRadius: '4px',
-        }}
-      >
-        <div
-          style={{
-            fontSize: '12px',
-            color: theme.colors.textSecondary,
-            fontFamily: 'monospace',
-            marginBottom: '8px',
-          }}
-        >
-          IMAGES ANALYZED
-        </div>
-        <div
-          style={{
-            fontSize: '32px',
-            color: theme.colors.info,
-            fontFamily: 'monospace',
-            fontWeight: 'bold',
-          }}
-        >
-          {summary.totalImagesAnalyzed}
-        </div>
-      </div>
-
       {/* Total Detections */}
       <div
         style={{
@@ -79,7 +60,7 @@ export function SummaryDashboard({ summary }) {
             fontWeight: 'bold',
           }}
         >
-          {summary.totalDetections}
+          {totalDetections || '—'}
         </div>
       </div>
 
@@ -106,44 +87,44 @@ export function SummaryDashboard({ summary }) {
           style={{
             fontSize: '32px',
             color:
-              summary.averageConfidence >= 0.8
+              averageConfidence >= 0.8
                 ? theme.colors.success
-                : summary.averageConfidence >= 0.5
+                : averageConfidence >= 0.5
                 ? theme.colors.warning
                 : theme.colors.danger,
             fontFamily: 'monospace',
             fontWeight: 'bold',
           }}
         >
-          {(summary.averageConfidence * 100).toFixed(1)}%
+          {totalDetections > 0 ? `${(averageConfidence * 100).toFixed(1)}%` : '—'}
         </div>
       </div>
 
       {/* Top Classes */}
-      {topClasses.length > 0 && (
+      <div
+        style={{
+          padding: '16px',
+          backgroundColor: theme.colors.backgroundTertiary,
+          border: `1px solid ${theme.colors.border}`,
+          borderRadius: '4px',
+          gridColumn: 'span 2',
+        }}
+      >
         <div
           style={{
-            padding: '16px',
-            backgroundColor: theme.colors.backgroundTertiary,
-            border: `1px solid ${theme.colors.border}`,
-            borderRadius: '4px',
-            gridColumn: 'span 2',
+            fontSize: '12px',
+            color: theme.colors.textSecondary,
+            fontFamily: 'monospace',
+            marginBottom: '12px',
           }}
         >
-          <div
-            style={{
-              fontSize: '12px',
-              color: theme.colors.textSecondary,
-              fontFamily: 'monospace',
-              marginBottom: '12px',
-            }}
-          >
-            TOP DETECTIONS
-          </div>
+          TOP DETECTIONS
+        </div>
+        {topClasses.length > 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {topClasses.map(([className, count]) => {
               const color = theme.getClassColor(className);
-              const percent = ((count / summary.totalDetections) * 100).toFixed(1);
+              const percent = ((count / totalDetections) * 100).toFixed(1);
 
               return (
                 <div key={className}>
@@ -182,8 +163,20 @@ export function SummaryDashboard({ summary }) {
               );
             })}
           </div>
-        </div>
-      )}
+        ) : (
+          <div
+            style={{
+              color: theme.colors.textMuted,
+              fontFamily: 'monospace',
+              fontSize: '14px',
+              textAlign: 'center',
+              padding: '16px 0',
+            }}
+          >
+            —
+          </div>
+        )}
+      </div>
     </div>
   );
 }

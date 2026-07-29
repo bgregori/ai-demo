@@ -1,6 +1,6 @@
 import { theme } from '../utils/theme';
 
-export function ImageQueue({ images, selectedImageKey, onSelectImage, onUpload, onReanalyze }) {
+export function ImageQueue({ images, selectedImageKey, onSelectImage, onUpload, onReanalyze, onDelete }) {
   const handleFileUpload = (event) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -149,6 +149,28 @@ export function ImageQueue({ images, selectedImageKey, onSelectImage, onUpload, 
                     </button>
                   </>
                 )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation(); // Don't trigger image selection
+                    if (window.confirm(`Delete ${image.name}?`)) {
+                      onDelete(image.key);
+                    }
+                  }}
+                  style={{
+                    padding: '3px 8px',
+                    backgroundColor: theme.colors.error,
+                    color: theme.colors.background,
+                    border: 'none',
+                    borderRadius: '3px',
+                    fontSize: '10px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    fontFamily: 'monospace',
+                  }}
+                  title="Delete this image"
+                >
+                  ✕
+                </button>
               </div>
             </div>
           );

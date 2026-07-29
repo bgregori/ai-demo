@@ -124,6 +124,29 @@ public class TacticalResource {
         }
     }
 
+    @DELETE
+    @Path("/images")
+    public Response deleteImage(@QueryParam("imageKey") String imageKey) {
+        if (imageKey == null || imageKey.isEmpty()) {
+            return Response.status(400).entity(Map.of("error", "imageKey parameter required")).build();
+        }
+
+        try {
+            LOG.info("Deleting image: " + imageKey);
+
+            // Delete from storage
+            storageService.deleteImage(imageKey);
+
+            // Remove from analysis cache
+            analysisCache.remove(imageKey);
+
+            return Response.ok(Map.of("success", true, "imageKey", imageKey)).build();
+        } catch (Exception e) {
+            LOG.error("Failed to delete image: " + imageKey, e);
+            return Response.status(500).entity(Map.of("error", e.getMessage())).build();
+        }
+    }
+
     @GET
     @Path("/detections/{imageId}")
     public Response getDetections(@PathParam("imageId") String imageId) {

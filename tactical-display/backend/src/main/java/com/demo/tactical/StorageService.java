@@ -92,4 +92,19 @@ public class StorageService {
             throw new RuntimeException("Failed to upload image", e);
         }
     }
+
+    public void deleteImage(String objectKey) {
+        try {
+            getClient().removeObject(
+                    RemoveObjectArgs.builder()
+                            .bucket(config.minio().bucket())
+                            .object(objectKey)
+                            .build()
+            );
+            LOG.info("Deleted image: " + objectKey);
+        } catch (Exception e) {
+            LOG.error("Failed to delete image: " + objectKey, e);
+            throw new RuntimeException("Failed to delete image", e);
+        }
+    }
 }
