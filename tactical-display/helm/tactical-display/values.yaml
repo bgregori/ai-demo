@@ -23,8 +23,8 @@ backend:
 
   minio:
     endpoint: http://minio-service.minio.svc.cluster.local:9000
-    accessKey: rootuser
-    secretKey: rootuser123
+    accessKey: minio
+    secretKey: minio123
     bucket: demo
     imagesPrefix: xview-images/
 
