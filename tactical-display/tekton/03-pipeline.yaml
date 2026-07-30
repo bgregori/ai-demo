@@ -155,8 +155,8 @@ spec:
               git config --global user.email "pipeline@tekton.dev"
               git config --global user.name "Tekton Pipeline"
 
-              # Get current commit SHA (short form)
-              COMMIT_SHA=$(git rev-parse --short=7 HEAD)
+              # Get current commit SHA (full SHA to match Buildah tags)
+              COMMIT_SHA=$(git rev-parse HEAD)
               echo "Updating values.yaml with tag: ${COMMIT_SHA}"
 
               # Update both backend and frontend tags
