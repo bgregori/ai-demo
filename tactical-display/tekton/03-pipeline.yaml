@@ -140,6 +140,10 @@ spec:
               #!/bin/bash
               set -e
 
+              # Install git first
+              echo "Installing git..."
+              dnf install -y git -q
+
               # Get current commit SHA (short form)
               COMMIT_SHA=$(git rev-parse --short=7 HEAD)
               echo "Updating values.yaml with tag: ${COMMIT_SHA}"
@@ -149,9 +153,6 @@ spec:
 
               echo "Updated values.yaml:"
               grep "tag:" tactical-display/helm/tactical-display/values.yaml
-
-              # Install git
-              dnf install -y git -q -y
 
               # Configure git
               git config --global user.email "pipeline@tekton.dev"
