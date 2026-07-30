@@ -19,8 +19,8 @@ export function useLiveFeed(images, onAnalyze, interval = 8000) {
         const nextIndex = (prev + 1) % images.length;
         const nextImage = images[nextIndex];
 
-        // Auto-analyze the next image
-        if (nextImage && !nextImage.analyzed) {
+        // Display the next image (will analyze if needed)
+        if (nextImage) {
           onAnalyze(nextImage.key);
         }
 
