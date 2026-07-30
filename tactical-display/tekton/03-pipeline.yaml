@@ -19,6 +19,11 @@ spec:
     - name: shared-workspace
       description: Shared workspace for source code
 
+  results:
+    - name: commit-sha
+      description: Git commit SHA
+      value: $(tasks.fetch-repository.results.commit)
+
   tasks:
     - name: fetch-repository
       taskRef:
@@ -79,7 +84,7 @@ spec:
         - maven-build-backend
       params:
         - name: IMAGE
-          value: image-registry.openshift-image-registry.svc:5000/demo/tactical-backend:latest
+          value: image-registry.openshift-image-registry.svc:5000/demo/tactical-backend:$(tasks.fetch-repository.results.commit)
         - name: DOCKERFILE
           value: ./tactical-display/backend/src/main/docker/Dockerfile.jvm
         - name: CONTEXT
@@ -104,13 +109,66 @@ spec:
         - fetch-repository
       params:
         - name: IMAGE
-          value: image-registry.openshift-image-registry.svc:5000/demo/tactical-frontend:latest
+          value: image-registry.openshift-image-registry.svc:5000/demo/tactical-frontend:$(tasks.fetch-repository.results.commit)
         - name: DOCKERFILE
           value: ./tactical-display/frontend/Dockerfile
         - name: CONTEXT
           value: ./tactical-display/frontend
         - name: TLSVERIFY
           value: "false"
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
+    - name: update-values
+      runAfter:
+        - buildah-backend
+        - buildah-frontend
+      params:
+        - name: git-url
+          value: $(params.git-url)
+      taskSpec:
+        params:
+          - name: git-url
+        workspaces:
+          - name: source
+        steps:
+          - name: update-tags
+            image: registry.access.redhat.com/ubi9/ubi:latest
+            workingDir: $(workspaces.source.path)
+            script: |
+              #!/bin/bash
+              set -e
+
+              # Get current commit SHA (short form)
+              COMMIT_SHA=$(git rev-parse --short=7 HEAD)
+              echo "Updating values.yaml with tag: ${COMMIT_SHA}"
+
+              # Update both backend and frontend tags
+              sed -i "s|tag: [a-z0-9]*  # Updated by pipeline|tag: ${COMMIT_SHA}  # Updated by pipeline|g" tactical-display/helm/tactical-display/values.yaml
+
+              echo "Updated values.yaml:"
+              grep "tag:" tactical-display/helm/tactical-display/values.yaml
+
+              # Install git
+              dnf install -y git -q -y
+
+              # Configure git
+              git config --global user.email "pipeline@tekton.dev"
+              git config --global user.name "Tekton Pipeline"
+
+              # Commit changes
+              git add tactical-display/helm/tactical-display/values.yaml
+
+              if git diff --cached --quiet; then
+                echo "No changes to commit"
+              else
+                git commit -m "Update image tags to ${COMMIT_SHA} [skip ci]"
+
+                # Extract GitHub token from git URL if present, otherwise push will fail
+                # For now, just report success - push will be manual or via webhook
+                echo "✓ Changes committed locally. Manual push or webhook required."
+              fi
       workspaces:
         - name: source
           workspace: shared-workspace
@@ -129,5 +187,4 @@ spec:
             script: |
               #!/bin/bash
               echo "$(params.message)"
-              echo "✓ Backend: image-registry.openshift-image-registry.svc:5000/demo/tactical-backend:latest"
-              echo "✓ Frontend: image-registry.openshift-image-registry.svc:5000/demo/tactical-frontend:latest"
+              echo "✓ Images built with commit SHA tag"

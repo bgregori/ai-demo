@@ -2,8 +2,8 @@ backend:
   image:
     registry: image-registry.openshift-image-registry.svc:5000
     repository: demo/tactical-backend
-    tag: latest
-    pullPolicy: Always
+    tag: ac132b6  # Updated by pipeline
+    pullPolicy: IfNotPresent
 
   replicas: 1
 
@@ -32,8 +32,8 @@ frontend:
   image:
     registry: image-registry.openshift-image-registry.svc:5000
     repository: demo/tactical-frontend
-    tag: latest
-    pullPolicy: Always
+    tag: ac132b6  # Updated by pipeline
+    pullPolicy: IfNotPresent
 
   replicas: 1
 
