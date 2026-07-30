@@ -22,7 +22,7 @@ spec:
   results:
     - name: commit-sha
       description: Git commit SHA
-      value: $(tasks.fetch-repository.results.commit)
+      value: $(tasks.fetch-repository.results.COMMIT)
 
   tasks:
     - name: fetch-repository
@@ -84,7 +84,7 @@ spec:
         - maven-build-backend
       params:
         - name: IMAGE
-          value: image-registry.openshift-image-registry.svc:5000/demo/tactical-backend:$(tasks.fetch-repository.results.commit)
+          value: image-registry.openshift-image-registry.svc:5000/demo/tactical-backend:$(tasks.fetch-repository.results.COMMIT)
         - name: DOCKERFILE
           value: ./tactical-display/backend/src/main/docker/Dockerfile.jvm
         - name: CONTEXT
@@ -109,7 +109,7 @@ spec:
         - fetch-repository
       params:
         - name: IMAGE
-          value: image-registry.openshift-image-registry.svc:5000/demo/tactical-frontend:$(tasks.fetch-repository.results.commit)
+          value: image-registry.openshift-image-registry.svc:5000/demo/tactical-frontend:$(tasks.fetch-repository.results.COMMIT)
         - name: DOCKERFILE
           value: ./tactical-display/frontend/Dockerfile
         - name: CONTEXT
