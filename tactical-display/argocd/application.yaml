@@ -10,20 +10,7 @@ spec:
     repoURL: https://github.com/bgregori/ai-demo.git
     targetRevision: main
     path: tactical-display/helm/tactical-display
-    helm:
-      values: |
-        # Images built by Tekton pipeline
-        backend:
-          image:
-            registry: image-registry.openshift-image-registry.svc:5000
-            repository: demo/tactical-backend
-            tag: latest
-
-        frontend:
-          image:
-            registry: image-registry.openshift-image-registry.svc:5000
-            repository: demo/tactical-frontend
-            tag: latest
+    # Use values.yaml from repo (updated by pipeline with commit SHA tags)
 
   destination:
     server: https://kubernetes.default.svc
