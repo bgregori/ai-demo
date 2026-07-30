@@ -2,7 +2,7 @@ backend:
   image:
     registry: image-registry.openshift-image-registry.svc:5000
     repository: demo/tactical-backend
-    tag: 71a3af4  # Updated by pipeline
+    tag: 2e9dc94  # Updated by pipeline
     pullPolicy: IfNotPresent
 
   replicas: 1
@@ -32,7 +32,7 @@ frontend:
   image:
     registry: image-registry.openshift-image-registry.svc:5000
     repository: demo/tactical-frontend
-    tag: 71a3af4  # Updated by pipeline
+    tag: 2e9dc94  # Updated by pipeline
     pullPolicy: IfNotPresent
 
   replicas: 1
