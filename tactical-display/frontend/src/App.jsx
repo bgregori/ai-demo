@@ -307,7 +307,7 @@ function App() {
           textAlign: 'center',
         }}
       >
-        Tactical Display Demo | YOLO26n on xView Dataset | {images.length} images available
+        Tactical Display Demo | YOLOv8 on xView Dataset | {images.length} images available
       </footer>
     </div>
   );
