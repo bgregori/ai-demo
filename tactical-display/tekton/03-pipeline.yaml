@@ -144,6 +144,11 @@ spec:
               echo "Installing git..."
               dnf install -y git -q
 
+              # Configure git safe directory (needed for Tekton workspace)
+              git config --global --add safe.directory /workspace/source
+              git config --global user.email "pipeline@tekton.dev"
+              git config --global user.name "Tekton Pipeline"
+
               # Get current commit SHA (short form)
               COMMIT_SHA=$(git rev-parse --short=7 HEAD)
               echo "Updating values.yaml with tag: ${COMMIT_SHA}"
@@ -153,10 +158,6 @@ spec:
 
               echo "Updated values.yaml:"
               grep "tag:" tactical-display/helm/tactical-display/values.yaml
-
-              # Configure git
-              git config --global user.email "pipeline@tekton.dev"
-              git config --global user.name "Tekton Pipeline"
 
               # Commit changes
               git add tactical-display/helm/tactical-display/values.yaml
