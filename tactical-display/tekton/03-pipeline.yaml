@@ -136,6 +136,12 @@ spec:
           - name: update-tags
             image: registry.access.redhat.com/ubi9/ubi:latest
             workingDir: $(workspaces.source.path)
+            env:
+              - name: GITHUB_TOKEN
+                valueFrom:
+                  secretKeyRef:
+                    name: github-push-secret
+                    key: token
             script: |
               #!/bin/bash
               set -e
@@ -164,13 +170,18 @@ spec:
 
               if git diff --cached --quiet; then
                 echo "No changes to commit"
-              else
-                git commit -m "Update image tags to ${COMMIT_SHA} [skip ci]"
-
-                # Extract GitHub token from git URL if present, otherwise push will fail
-                # For now, just report success - push will be manual or via webhook
-                echo "✓ Changes committed locally. Manual push or webhook required."
+                exit 0
               fi
+
+              git commit -m "Update image tags to ${COMMIT_SHA} [skip ci]"
+
+              # Push using GitHub token
+              echo "Pushing changes to GitHub..."
+              # Extract repo path from git URL (https://github.com/user/repo.git)
+              REPO_PATH=$(echo "$(params.git-url)" | sed 's|https://github.com/||' | sed 's|.git$||')
+              git remote set-url origin "https://${GITHUB_TOKEN}@github.com/${REPO_PATH}.git"
+              git push origin HEAD:main
+              echo "✓ Changes pushed to GitHub - ArgoCD will auto-deploy"
       workspaces:
         - name: source
           workspace: shared-workspace
