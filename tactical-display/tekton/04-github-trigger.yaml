@@ -1,0 +1,107 @@
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: github-listener
+  namespace: demo
+spec:
+  serviceAccountName: pipeline
+  triggers:
+    - name: github-push
+      interceptors:
+        - ref:
+            name: github
+          params:
+            - name: secretRef
+              value:
+                secretName: github-webhook-secret
+                secretKey: secretToken
+            - name: eventTypes
+              value:
+                - push
+        - ref:
+            name: cel
+          params:
+            - name: filter
+              value: (body.ref == 'refs/heads/main')
+      bindings:
+        - ref: github-push-binding
+      template:
+        ref: github-trigger-template
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: github-push-binding
+  namespace: demo
+spec:
+  params:
+    - name: git-repo-url
+      value: $(body.repository.clone_url)
+    - name: git-revision
+      value: $(body.after)
+    - name: git-repo-name
+      value: $(body.repository.name)
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: github-trigger-template
+  namespace: demo
+spec:
+  params:
+    - name: git-repo-url
+      description: The git repository URL
+    - name: git-revision
+      description: The git revision
+      default: main
+    - name: git-repo-name
+      description: The name of the deployment
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1
+      kind: PipelineRun
+      metadata:
+        generateName: build-tactical-display-
+        namespace: demo
+      spec:
+        pipelineRef:
+          name: build-tactical-display
+        params:
+          - name: git-url
+            value: $(tt.params.git-repo-url)
+          - name: git-revision
+            value: $(tt.params.git-revision)
+        workspaces:
+          - name: shared-workspace
+            volumeClaimTemplate:
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: 500Mi
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: github-webhook-secret
+  namespace: demo
+type: Opaque
+stringData:
+  secretToken: "changeme123456"  # Change this to a secure random value
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: github-webhook
+  namespace: demo
+spec:
+  port:
+    targetPort: http-listener
+  to:
+    kind: Service
+    name: el-github-listener
+    weight: 100
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
